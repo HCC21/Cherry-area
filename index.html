@@ -33,7 +33,10 @@
   .notice-card.today { border-left-color:#f39c12; box-shadow:0 0 0 2px rgba(243,156,18,.2); }
   .notice-card h3 { margin:0 0 2px; } .notice-card p { white-space:pre-wrap; margin:3px 0; }
   .notice-meta { color:#666; font-size:.82em; } .notice-badge { display:inline-block; padding:1px 5px; border-radius:99px; background:#fff0cf; color:#895c00; font-size:.75em; font-weight:bold; }
-  .notice-photo { max-width:100%; max-height:80px; display:block; margin-top:4px; border-radius:5px; object-fit:contain; }
+  .notice-photo { max-width:100%; max-height:80px; display:block; margin-top:4px; border-radius:5px; object-fit:contain; cursor:zoom-in; }
+  #imageViewer { position:fixed; inset:0; z-index:2500; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.82); cursor:zoom-out; }
+  #imageViewer img { max-width:96vw; max-height:92vh; object-fit:contain; border-radius:6px; box-shadow:0 4px 24px rgba(0,0,0,.45); }
+  #imageViewerClose { position:absolute; top:12px; right:16px; border:0; border-radius:6px; padding:5px 10px; background:#fff; color:#333; font-size:1.2em; cursor:pointer; }
   .notice-card-actions { display:flex; gap:6px; justify-content:flex-end; margin-top:7px; }
   .edit-btn { border:0; padding:5px 10px; border-radius:6px; color:#fff; background:#4c8fca; cursor:pointer; }
   .notice-card .danger-btn, .edit-btn { padding:3px 7px; font-size:.78em; }
@@ -79,6 +82,11 @@
     <button type="submit" id="loginSubmit">登入</button>
     <div id="loginError" role="alert"></div>
   </form>
+</div>
+
+<div id="imageViewer" role="dialog" aria-modal="true" aria-label="放大圖片">
+  <button id="imageViewerClose" type="button" aria-label="關閉">×</button>
+  <img id="imageViewerImage" alt="放大圖片">
 </div>
 
 <!-- 頁面進入前需要密碼；登入後所有原本的管理員連結仍為公開顯示 -->
@@ -171,8 +179,8 @@ const SYNC_API_URL='https://script.google.com/macros/s/AKfycbyeIqaCnNrjiywTGVa9M
 const PAGE_PASSWORD='Cherry123';
 let editingNoticeId=null;
 function setSyncStatus(key){if($('syncStatus'))$('syncStatus').textContent=LANG[currentLang][key]||'';}
-async function syncRequest(payload){if(!SYNC_API_URL){setSyncStatus('syncLocal');return null;}setSyncStatus('syncing');const res=await fetch(SYNC_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});if(!res.ok)throw new Error('sync failed');const data=await res.json().catch(()=>({}));setSyncStatus('synced');return data;}
-async function loadSharedNotices(){if(!SYNC_API_URL){setSyncStatus('syncLocal');renderNotices();return;}try{setSyncStatus('syncing');const res=await fetch(SYNC_API_URL+'?action=list');const data=await res.json();if(Array.isArray(data.notices)){saveNotices(data.notices);}setSyncStatus('synced');renderNotices();}catch(e){setSyncStatus('syncLocal');renderNotices();}}
+async function syncRequest(payload){if(!SYNC_API_URL){setSyncStatus('syncLocal');return null;}setSyncStatus('syncing');const res=await fetch(SYNC_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json().catch(()=>({ok:false,error:'Invalid server response'}));if(data.ok===false)throw new Error(data.error||'Sync failed');setSyncStatus('synced');return data;}
+async function loadSharedNotices(){if(!SYNC_API_URL){setSyncStatus('syncLocal');renderNotices();return;}try{setSyncStatus('syncing');const res=await fetch(SYNC_API_URL+'?action=list');if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();if(data.ok===false)throw new Error(data.error||'Load failed');if(!Array.isArray(data.notices))throw new Error('Invalid notices data');saveNotices(data.notices);setSyncStatus('synced');renderNotices();}catch(e){setSyncStatus('syncLocal');renderNotices();}}
 function unlockPage(){sessionStorage.setItem('cherryPageUnlocked','1');$('loginGate').style.display='none';$('pagePassword').value='';}
 $('loginForm').addEventListener('submit',function(e){e.preventDefault();if($('pagePassword').value===PAGE_PASSWORD){$('loginError').textContent='';unlockPage();}else{$('loginError').textContent=LANG[currentLang].loginError;$('pagePassword').select();}});
 if(sessionStorage.getItem('cherryPageUnlocked')==='1')unlockPage();
@@ -191,21 +199,22 @@ function renderNotices(){
     const card=document.createElement('article'); card.className='notice-card'+(isToday?' today':'');
     card.innerHTML='<h3></h3><div class="notice-meta"></div><p></p>'+((isToday||isProcessToday)?'<span class="notice-badge">'+(isProcessToday?LANG[currentLang].processToday:LANG[currentLang].today)+'</span>':'')+(n.photo?'<img class="notice-photo" alt="Notice photo">':'')+'<div class="notice-card-actions"><button class="edit-btn" type="button">'+(currentLang==='zh'?'修改':'Edit')+'</button><button class="danger-btn" type="button">'+(currentLang==='zh'?'刪除':'Delete')+'</button></div>';
     card.querySelector('h3').textContent=n.name; card.querySelector('.notice-meta').textContent=LANG[currentLang].period+'：'+range+' | '+LANG[currentLang].noticeProcessLabel+'：'+dateText(n.processDate||n.start); card.querySelector('p').textContent=n.content;
-    if(n.photo)card.querySelector('img').src=n.photo;
+    if(n.photo){const image=card.querySelector('img');image.src=n.photo;image.onclick=()=>openImageViewer(n.photo);}
     card.querySelector('.edit-btn').onclick=()=>startEditNotice(n.id);
-    card.querySelector('.danger-btn').onclick=async()=>{const next=readNotices().filter(item=>item.id!==n.id);saveNotices(next);try{await syncRequest({action:'delete',id:n.id});}catch(e){setSyncStatus('syncLocal');}$('noticeMessage').textContent=LANG[currentLang].deleted;renderNotices();};
+    card.querySelector('.danger-btn').onclick=async()=>{try{await syncRequest({action:'delete',id:n.id});const next=readNotices().filter(item=>item.id!==n.id);saveNotices(next);$('noticeMessage').textContent=LANG[currentLang].deleted;renderNotices();}catch(e){setSyncStatus('syncLocal');$('noticeMessage').textContent=currentLang==='zh'?'同步失敗，事項未刪除。請檢查 Apps Script 部署及 Google Sheet 權限。':'Sync failed; notice was not deleted.';}};
     box.appendChild(card);
   });
 }
 function startEditNotice(id){const n=readNotices().find(item=>item.id===id);if(!n)return;editingNoticeId=id;$('noticeName').value=n.name||'';$('noticeStart').value=n.start||'';$('noticeEnd').value=n.end||n.start||'';$('noticeContent').value=n.content||'';$('noticeProcess').value=n.processDate||n.start||'';$('noticePhoto').value='';$('saveNoticeBtn').textContent=LANG[currentLang].updateNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].cancelEdit;$('noticeMessage').textContent=currentLang==='zh'?'正在修改事項。':'Editing notice.';$('noticeForm').scrollIntoView({behavior:'smooth',block:'center'});}
 function resetNoticeForm(){$('noticeForm').reset();editingNoticeId=null;$('saveNoticeBtn').textContent=LANG[currentLang].saveNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].clearNoticeBtn;}
+function preparePhotoForSync(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const image=new Image();image.onerror=reject;image.onload=()=>{const maxSide=1600,scale=Math.min(1,maxSide/Math.max(image.naturalWidth,image.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.78));};image.src=reader.result;};reader.readAsDataURL(file);});}
 $('noticeForm').addEventListener('submit',async function(e){
   e.preventDefault();const name=$('noticeName').value.trim(),start=$('noticeStart').value,end=$('noticeEnd').value,content=$('noticeContent').value.trim(),processDate=$('noticeProcess').value,file=$('noticePhoto').files[0];
   if(!name||!start||!processDate||!content){$('noticeMessage').textContent=LANG[currentLang].noticeRequired;return;}if(end&&end<start){$('noticeMessage').textContent=LANG[currentLang].dateError;return;}
   const list=readNotices(),editing=editingNoticeId!==null;let photo='';if(editing){const old=list.find(n=>n.id===editingNoticeId);photo=old&&old.photo?old.photo:'';}
-  if(file){if(file.size>3*1024*1024){$('noticeMessage').textContent=currentLang==='zh'?'相片不能超過 3MB。':'Photo must be smaller than 3MB.';return;}photo=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});}
-  const data={id:String(Date.now()),name,start,end:end||start,processDate,content,photo,createdAt:Date.now()};if(editing){const updated=list.map(n=>n.id===editingNoticeId?{...n,...data,id:editingNoticeId}:n);if(!saveNotices(updated)){$('noticeMessage').textContent=currentLang==='zh'?'儲存空間不足，請縮小相片。':'Not enough browser storage; please use a smaller photo.';return;}}else{list.push(data);if(!saveNotices(list)){$('noticeMessage').textContent=currentLang==='zh'?'儲存空間不足，請縮小相片。':'Not enough browser storage; please use a smaller photo.';return;}}
-  try{await syncRequest({action:editing?'update':'create',notice:{...data,id:editing?editingNoticeId:data.id}});}catch(e){setSyncStatus('syncLocal');}resetNoticeForm();$('noticeMessage').textContent=LANG[currentLang][editing?'updated':'saved'];renderNotices();
+  if(file){if(file.size>10*1024*1024){$('noticeMessage').textContent=currentLang==='zh'?'相片不能超過 10MB。':'Photo must be smaller than 10MB.';return;}try{photo=await preparePhotoForSync(file);}catch(err){$('noticeMessage').textContent=currentLang==='zh'?'相片讀取失敗，請重新選擇。':'Unable to read the photo. Please choose it again.';return;}}
+  const data={id:editing?editingNoticeId:String(Date.now()),name,start,end:end||start,processDate,content,photo,createdAt:editing?(list.find(n=>n.id===editingNoticeId)||{}).createdAt||Date.now():Date.now()};
+  try{const response=await syncRequest({action:editing?'update':'create',notice:data});const syncedNotice=response&&response.result?response.result:data;const next=editing?list.map(n=>n.id===editingNoticeId?{...n,...syncedNotice,id:editingNoticeId}:n):[...list,syncedNotice];if(!saveNotices(next))throw new Error('local storage failed');resetNoticeForm();$('noticeMessage').textContent=LANG[currentLang][editing?'updated':'saved'];renderNotices();}catch(e){setSyncStatus('syncLocal');$('noticeMessage').textContent=currentLang==='zh'?'同步失敗，事項未儲存。請檢查 Apps Script 是否已重新部署及 Google Sheet／Drive 權限。':'Sync failed; notice was not saved. Please check the Apps Script deployment and Google Sheet/Drive permissions.';}
 });
 $('clearNoticeBtn').onclick=()=>{resetNoticeForm();$('noticeMessage').textContent='';};
 $('noticeFilterBtn').onclick=()=>{if(!$('noticeFilterDate').value){$('noticeMessage').textContent=LANG[currentLang].selectDate;return;}$('noticeMessage').textContent='';renderNotices();};
@@ -213,6 +222,10 @@ $('noticeWeekBtn').onclick=()=>{$('noticeFilterDate').value='';$('noticeMessage'
 $('noticeFilterDate').addEventListener('change',()=>{if($('noticeFilterDate').value)renderNotices();});
 setInterval(()=>{$('dateTime').textContent=new Date().toLocaleString(currentLang==='zh'?'zh-HK':'en-HK');},1000);
 function generateQRCode(){const url=$('urlInput').value.trim(), box=$('qrCode'); box.innerHTML=''; if(!url){box.textContent=LANG[currentLang].qrError;return;} QRCode.toDataURL(url,(err,src)=>{if(err){box.textContent='產生失敗，請確認網址格式';return;}const img=document.createElement('img');img.src=src;img.style.cssText='max-width:200px;border:1px solid #ccc;padding:10px;background:#fff';box.appendChild(img);});}
+function openImageViewer(src){if(!src)return;$('imageViewerImage').src=src;$('imageViewer').style.display='flex';}
+function closeImageViewer(){$('imageViewer').style.display='none';$('imageViewerImage').removeAttribute('src');}
+$('imageViewer').addEventListener('click',function(e){if(e.target===this||e.target.id==='imageViewerClose')closeImageViewer();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('imageViewer').style.display==='flex')closeImageViewer();});
 function toggleWeatherCard(card){const expanded=card.classList.toggle('expanded');card.setAttribute('aria-expanded',String(expanded));}
 async function loadWeather(){try{const apiLang=currentLang==='zh'?'tc':'en',res=await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang='+apiLang),data=await res.json();$('weatherScroll').innerHTML=data.weatherForecast.slice(0,7).map(d=>{const w=d.forecastWeather;let icon='⛅',weatherClass='weather-default';if(w.includes('雷')||w.includes('Thunder')){icon='⛈️';weatherClass='weather-storm';}else if(w.includes('雨')||w.includes('Rain')){icon='🌧️';weatherClass='weather-rainy';}else if(w.includes('晴')||w.includes('Fine')){icon='☀️';weatherClass='weather-sunny';}else if(w.includes('陰')||w.includes('Cloudy')){icon='☁️';weatherClass='weather-cloudy';}const dateLabel=d.forecastDate.substring(4,6)+'月'+d.forecastDate.substring(6,8)+'日';return '<div class="weather-card '+weatherClass+'" tabindex="0" role="button" aria-expanded="false" onclick="toggleWeatherCard(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleWeatherCard(this)}"><div class="weather-basic"><div class="weather-icon">'+icon+'</div><b>'+dateLabel+'</b><br>🌡️ '+d.forecastMintemp.value+'°C - '+d.forecastMaxtemp.value+'°C</div><div class="weather-detail">'+w+'</div></div>';}).join('');}catch(e){$('weatherScroll').textContent='無法取得天氣資料';}}
 function toggleBGM(){const bgm=$('bgm');if(bgm.paused){bgm.play();}else{bgm.pause();}}
