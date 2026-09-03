@@ -5,397 +5,215 @@
 <meta charset="UTF-8">
 <title>Cherry Area 每日通道</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
-
 <style>
-  body {
-    font-family: 'Noto Serif TC', serif;
-    text-align: center;
-    background-image: url('coffee-bg.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    color: #2f2f2f;
-  }
-  h1 {
-    background-color: rgba(255, 255, 255, 0.75);
-    display: inline-block;
-    padding: 10px 30px;
-    border-radius: 12px;
-    margin-top: 30px;
-  }
-  .link-button {
-    margin: 15px;
-    padding: 18px 24px;
-    display: inline-block;
-    background: rgba(76, 175, 80, 0.85);
-    color: white;
-    text-decoration: none;
-    border-radius: 10px;
-    font-size: 1.1em;
-    transition: background 0.3s ease;
-    backdrop-filter: blur(6px);
-  }
-  .link-button:hover {
-    background: rgba(69, 160, 73, 0.95);
-  }
-  .section-title {
-    background-color: rgba(255, 255, 255, 0.85);
-    display: inline-block;
-    padding: 8px 20px;
-    border-radius: 10px;
-  }
-  .result-box {
-    background-color: rgba(255, 255, 255, 0.85);
-    display: block;
-    padding: 12px 20px;
-    border-radius: 10px;
-    margin: 12px auto 0 auto;
-    width: 60%;
-    font-size: 1.1em;
-    font-weight: bold;
-    text-align: left;
-  }
+  :root { --green:#4CAF50; --dark:#2f2f2f; --panel:rgba(255,255,255,.88); }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Noto Serif TC',serif; text-align:center; background-image:url('coffee-bg.jpg'); background-size:cover; background-position:center; background-attachment:fixed; color:var(--dark); }
+  h1 { background-color:rgba(255,255,255,.75); display:inline-block; padding:10px 30px; border-radius:12px; margin-top:30px; }
+  .link-button { margin:8px; padding:16px 22px; display:inline-block; background:rgba(76,175,80,.88); color:white; text-decoration:none; border-radius:10px; font-size:1.05em; transition:background .3s ease; backdrop-filter:blur(6px); }
+  .link-button:hover { background:rgba(69,160,73,.98); }
+  .section-title { background-color:var(--panel); display:inline-block; padding:8px 20px; border-radius:10px; }
+  .result-box { background-color:var(--panel); display:block; padding:12px 20px; border-radius:10px; margin:12px auto 0; width:60%; font-size:1.1em; font-weight:bold; text-align:left; }
+  .panel { width:70%; max-width:400px; margin:10px auto; padding:7px 9px; border-radius:10px; background:var(--panel); box-shadow:0 0 7px rgba(0,0,0,.12); }
+  .notice-form { display:grid; grid-template-columns:1fr 1fr; gap:5px; text-align:left; font-size:.78em; }
+  .notice-form .full { grid-column:1 / -1; }
+  .notice-form label { display:flex; flex-direction:column; gap:3px; font-weight:bold; }
+  input, textarea, select, button { font:inherit; }
+  input[type="text"], input[type="date"], textarea, select { width:100%; padding:5px 6px; border:1px solid #bbb; border-radius:6px; background:#fff; font-size:.9em; }
+  textarea { min-height:45px; resize:vertical; }
+  .notice-filter { display:flex; align-items:flex-end; gap:5px; margin:5px 0 1px; text-align:left; flex-wrap:wrap; font-size:.78em; }
+  .notice-filter label { flex:1 1 190px; display:flex; flex-direction:column; gap:3px; font-weight:bold; }
+  .notice-filter button { border:0; padding:5px 7px; border-radius:6px; color:#fff; cursor:pointer; font-size:.9em; }
+  .notice-filter .filter-btn { background:#4c8fca; } .notice-filter .week-btn { background:#777; }
+  .primary-btn, .secondary-btn, .danger-btn { border:0; padding:6px 10px; border-radius:6px; color:#fff; cursor:pointer; font-size:.8em; }
+  .primary-btn { background:var(--green); } .secondary-btn { background:#777; } .danger-btn { background:#d9534f; }
+  .notice-actions { grid-column:1 / -1; display:flex; gap:5px; justify-content:flex-end; }
+  .notice-list { display:grid; gap:5px; margin-top:6px; text-align:left; }
+  .notice-card { background:#fff; border-left:3px solid var(--green); border-radius:6px; padding:6px 8px; box-shadow:0 2px 5px rgba(0,0,0,.1); font-size:.78em; }
+  .notice-card.today { border-left-color:#f39c12; box-shadow:0 0 0 2px rgba(243,156,18,.2); }
+  .notice-card h3 { margin:0 0 2px; } .notice-card p { white-space:pre-wrap; margin:3px 0; }
+  .notice-meta { color:#666; font-size:.82em; } .notice-badge { display:inline-block; padding:1px 5px; border-radius:99px; background:#fff0cf; color:#895c00; font-size:.75em; font-weight:bold; }
+  .notice-photo { max-width:100%; max-height:80px; display:block; margin-top:4px; border-radius:5px; object-fit:contain; }
+  .notice-card-actions { display:flex; gap:6px; justify-content:flex-end; margin-top:7px; }
+  .edit-btn { border:0; padding:5px 10px; border-radius:6px; color:#fff; background:#4c8fca; cursor:pointer; }
+  .notice-card .danger-btn, .edit-btn { padding:3px 7px; font-size:.78em; }
+  .empty { color:#777; padding:8px; text-align:center; }
+  .weather-panel { width:70%; max-width:450px; margin:6px auto; padding:3px 4px; background:var(--panel); border-radius:7px; }
+  .weather-panel h2 { margin:1px 0 3px; font-size:.72em !important; }
+  #weatherScroll { gap:3px !important; padding-bottom:2px !important; }
+  .weather-card { min-width:70px; padding:3px 4px; border-radius:5px; box-shadow:0 0 3px rgba(0,0,0,.15); font-size:.56em; line-height:1.15; text-align:left; color:#333; white-space:normal; word-break:break-word; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+  .weather-card:hover, .weather-card:focus { transform:translateY(-1px); box-shadow:0 0 0 2px rgba(76,143,202,.35); outline:none; }
+  .weather-card .weather-icon { font-size:1.15em; line-height:1; }
+  .weather-basic { min-height:30px; }
+  .weather-detail { display:none; margin-top:3px; padding-top:3px; border-top:1px solid rgba(0,0,0,.15); }
+  .weather-card.expanded .weather-detail { display:block; }
+  .weather-sunny { background:linear-gradient(135deg,#fff3a6,#ffd447); }
+  .weather-rainy { background:linear-gradient(135deg,#b8dcff,#6ea8ff); }
+  .weather-storm { background:linear-gradient(135deg,#c5c8e8,#6f75ad); color:#fff; }
+  .weather-cloudy { background:linear-gradient(135deg,#eeeeee,#c8cdd3); }
+  .weather-default { background:linear-gradient(135deg,#f0f0f0,#dcdcdc); }
+  #loginGate { position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; background:rgba(35,35,35,.82); padding:20px; }
+  #loginGate form { width:min(360px,100%); padding:24px; border-radius:14px; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  #loginGate input { width:100%; padding:10px; margin:10px 0; border:1px solid #bbb; border-radius:8px; }
+  #loginGate button { width:100%; padding:10px; border:0; border-radius:8px; color:#fff; background:var(--green); cursor:pointer; }
+  #loginError { color:#c0392b; min-height:1.4em; margin:8px 0 0; font-weight:bold; }
+  .sync-status { color:#666; font-size:.82em; margin-top:4px; }
+  @media (max-width:650px) { h1 { font-size:1.45em; padding:9px 18px; } .notice-form { grid-template-columns:1fr; } .notice-form .full, .notice-actions { grid-column:auto; } .notice-actions { justify-content:stretch; flex-wrap:wrap; } .notice-actions button { flex:1; } .result-box { width:90%; } }
 </style>
 </head>
-
 <body>
 
-<!-- ⭐ 左上登入 -->
-<div style="position: fixed; top: 20px; left: 20px; background: rgba(255,255,255,0.85); padding: 10px 15px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.2); z-index: 999;">
-  <input type="password" id="loginPassword" placeholder="管理員密碼" style="padding:5px; width:140px; border-radius:6px;">
-  <button id="loginBtn" onclick="checkLogin()" style="padding:5px 10px; border-radius:6px; background:#4CAF50; color:white;">登入</button>
-  <p id="loginMessage" style="color:red; font-weight:bold; margin:5px 0 0 0;"></p>
+<div id="loginGate">
+  <form id="loginForm">
+    <h2 id="loginTitle">請先登入</h2>
+    <p id="loginIntro">請輸入密碼後進入頁面</p>
+    <input id="pagePassword" type="password" autocomplete="current-password" placeholder="密碼" required>
+    <button type="submit" id="loginSubmit">登入</button>
+    <div id="loginError" role="alert"></div>
+  </form>
 </div>
 
-<!-- ⭐ 右上語言切換 -->
-<div style="position: fixed; top: 20px; right: 20px; z-index: 999;">
+<!-- 頁面進入前需要密碼；登入後所有原本的管理員連結仍為公開顯示 -->
+<div style="position:fixed; top:20px; right:20px; z-index:999;">
   <button onclick="setLang('zh')" style="padding:5px 10px; border-radius:6px;">中文</button>
   <button onclick="setLang('en')" style="padding:5px 10px; border-radius:6px;">English</button>
 </div>
 
 <h1 id="title">Cherry Area 每日通道</h1>
 
-<!-- ⭐ 背景音樂控制（放在標題下方） -->
-<div style="
-  margin-top: 10px;
-  background: rgba(255,255,255,0.85);
-  display: inline-block;
-  padding: 12px 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
-">
-  <button onclick="toggleBGM()" 
-          style="padding:6px 14px; border-radius:6px; background:#ff9800; color:white; font-size:1em;">
-    🎵 播放 / 暫停
-  </button>
+<div style="margin-top:10px; background:var(--panel); display:inline-block; padding:12px 20px; border-radius:10px; box-shadow:0 0 6px rgba(0,0,0,.2);">
+  <button onclick="toggleBGM()" style="padding:6px 14px; border-radius:6px; background:#ff9800; color:white; font-size:1em;">播放 / 暫停</button>
+  <div style="margin-top:8px; font-size:.9em; font-weight:bold;">音量</div>
+  <input type="range" min="0" max="1" step=".01" value=".5" id="bgmVolume" oninput="changeVolume(this.value)" style="width:160px;">
 
-  <div style="margin-top:8px; font-size:0.9em; font-weight:bold;">音量</div>
-  <input type="range" min="0" max="1" step="0.01" value="0.5"
-         id="bgmVolume" oninput="changeVolume(this.value)"
-         style="width:160px;">
 </div>
 
-<p id="dateTime"></p>
-
-<!-- ⭐ 天氣預報 -->
-<section style="margin-top:20px; padding:10px; background:rgba(255,255,255,0.8); width:90%; max-width:900px; margin-left:auto; margin-right:auto; border-radius:12px;">
-  <h2 id="weatherTitle" style="margin-bottom:10px; font-size:1.2em;">🌤️ 香港 7 日天氣預報</h2>
+<section class="weather-panel">
+  <h2 id="weatherTitle">香港 7 日天氣預報</h2>
   <div id="weatherScroll" style="display:flex; overflow-x:auto; gap:10px; padding-bottom:10px; white-space:nowrap;"></div>
 </section>
 
-<script>
-/* ⭐ 語言資料 */
-const LANG = {
-  zh: {
-    title: "Cherry Area 每日通道",
-    weatherTitle: "🌤️ 香港 7 日天氣預報",
-    loginPlaceholder: "管理員密碼",
-    loginBtn: "登入",
-    loginError: "密碼錯誤",
-    admin1: "🔒 2026 Revenue Data",
-    admin2: "🔒 2025 Revenue Data",
-    admin3: "🔒 每月上載更表",
-    admin4: "🔒 每日時鐘",
-    erp: "📦ERP系統",
-    inv: "📦PCC Inventory系統(只用作Clockin/out)",
-    cat: "📊餐飲王系統",
-    gaia: "🕗 Gaia UI",
-    form: "📄分店使用表格",
-    storeTitle: "選擇分店代號查詢資料",
-    address: "Address：",
-    addressZh: "中文地址：",
-    phone: "電話：",
-    qrTitle: "輸入網址轉換成 QR CODE",
-    qrBtn: "產生 QR Code",
-    qrError: "請先輸入網址"
-  },
-  en: {
-    title: "Cherry Area Daily Portal",
-    weatherTitle: "🌤️ Hong Kong 7-Day Weather Forecast",
-    loginPlaceholder: "Admin Password",
-    loginBtn: "Login",
-    loginError: "Incorrect password",
-    admin1: "🔒 2026 Revenue Data",
-    admin2: "🔒 2025 Revenue Data",
-    admin3: "🔒 Monthly Roster Upload",
-    admin4: "🔒 Daily Clock-in Sheet",
-    erp: "📦 ERP System",
-    inv: "📦 PCC Inventory System (Clock-in/out only)",
-    cat: "📊Caterlord System",
-    gaia: "🕗 Gaia UI",
-    form: "📄 Store Forms",
-    storeTitle: "Select Store Code",
-    address: "Address:",
-    addressZh: "Chinese Address:",
-    phone: "Phone:",
-    qrTitle: "Convert URL to QR Code",
-    qrBtn: "Generate QR Code",
-    qrError: "Please enter a URL"
-  }
-};
+<p id="dateTime"></p>
 
-let currentLang = "zh";
+<section class="panel" id="noticePanel">
+  <h2 id="noticeTitle" class="section-title" style="font-size:.9em; padding:4px 10px; margin:3px 0;">事項通知</h2>
+  <p id="noticeIntro" style="font-size:.72em; margin:3px 0 5px;">可輸入單日日期，或輸入開始日期及完結日期。事項在開始日及完結日會標示通知。</p>
+  <form id="noticeForm" class="notice-form">
+    <label class="full"><span id="noticeNameLabel">事項</span><input id="noticeName" type="text" required maxlength="120" placeholder="例如：分店培訓"></label>
+    <label><span id="noticeStartLabel">日期／開始日期</span><input id="noticeStart" type="date" required></label>
+    <label><span id="noticeEndLabel">完結日期（如適用）</span><input id="noticeEnd" type="date"></label>
+    <label class="full"><span id="noticeContentLabel">內容</span><textarea id="noticeContent" required maxlength="2000" placeholder="輸入事項內容"></textarea></label>
+    <label><span id="noticeProcessLabel">處理日期</span><input id="noticeProcess" type="date" required></label>
+    <label class="full"><span id="noticePhotoLabel">相片（可選）</span><input id="noticePhoto" type="file" accept="image/*"></label>
+    <div class="notice-actions"><button class="primary-btn" type="submit" id="saveNoticeBtn">新增事項</button><button class="secondary-btn" type="button" id="clearNoticeBtn">清除</button></div>
+  </form>
+  <div id="noticeMessage" role="status" style="font-weight:bold;margin-top:6px;"></div>
+  <div id="syncStatus" class="sync-status"></div>
+  <div class="notice-filter">
+    <label><span id="noticeFilterLabel">選擇日期查看事項</span><input id="noticeFilterDate" type="date"></label>
+    <button class="filter-btn" type="button" id="noticeFilterBtn">查詢日期</button>
+    <button class="week-btn" type="button" id="noticeWeekBtn">顯示本週</button>
+  </div>
+  <div id="noticeList" class="notice-list"></div>
+</section>
 
-/* ⭐ 語言切換 */
-function setLang(lang) {
-  currentLang = lang;
-
-  document.getElementById("title").textContent = LANG[lang].title;
-  document.getElementById("weatherTitle").textContent = LANG[lang].weatherTitle;
-
-  document.getElementById("loginPassword").placeholder = LANG[lang].loginPlaceholder;
-  document.getElementById("loginBtn").textContent = LANG[lang].loginBtn;
-
-  document.getElementById("admin1").textContent = LANG[lang].admin1;
-  document.getElementById("admin2").textContent = LANG[lang].admin2;
-  document.getElementById("admin3").textContent = LANG[lang].admin3;
-  document.getElementById("admin4").textContent = LANG[lang].admin4;
-
-  document.getElementById("erp").textContent = LANG[lang].erp;
-  document.getElementById("inv").textContent = LANG[lang].inv;
-  document.getElementById("cat").textContent = LANG[lang].cat;
-  document.getElementById("gaia").textContent = LANG[lang].gaia;
-  document.getElementById("form").textContent = LANG[lang].form;
-  document.getElementById("storeTitle").textContent = LANG[lang].storeTitle;
-  document.getElementById("qrTitle").textContent = LANG[lang].qrTitle;
-  document.getElementById("qrBtn").textContent = LANG[lang].qrBtn;
-  loadWeather();
-}
-</script>
-
-<div id="adminLinks" style="display:none; margin-top:20px;">
-  <a id="admin1" href="https://drive.google.com/drive/folders/1cVuq8SG0kp_vbzQk8XWWHfHhsrbnEKbh?usp=drive_link" class="link-button">🔒 2026 Revenue Data</a>
-
-  <a id="admin2" href="https://drive.google.com/drive/folders/1GcMQC4TJCMT6YgVkldTBxpCnlEBNf3wo?usp=drive_link" class="link-button">🔒 2025 Revenue Data</a>
-
-  <a id="admin3" href="https://drive.google.com/drive/folders/11a_VDUoQvwF7xf9Hudr92NGgBIfNAAp6" class="link-button">🔒 每月上載更表</a>
-
-  <a id="admin4" href="https://1drv.ms/x/s!AurgEr5nfQcDhxCxxdLf8zA-DkFn?e=hQQskU" class="link-button">🔒 每日時鐘</a>
+  <div id="publicLinks" style="margin-top:10px;">
+  <a id="admin1" href="https://drive.google.com/drive/folders/1cVuq8SG0kp_vbzQk8XWWHfHhsrbnEKbh?usp=drive_link" class="link-button">2026 Revenue Data</a>
+  <a id="admin2" href="https://drive.google.com/drive/folders/1GcMQC4TJCMT6YgVkldTBxpCnlEBNf3wo?usp=drive_link" class="link-button">2025 Revenue Data</a>
+  <a id="admin3" href="https://drive.google.com/drive/folders/11a_VDUoQvwF7xf9Hudr92NGgBIfNAAp6" class="link-button">每月上載更表</a>
+  <a id="admin4" href="https://1drv.ms/x/s!AurgEr5nfQcDhxCxxdLf8zA-DkFn?e=hQQskU" class="link-button">每日時鐘</a>
+  <a id="erp" href="https://hkprodapp.pacificcoffee.com/dist/#/" class="link-button">ERP系統</a>
+  <a id="inv" href="https://pcc-inventory.web.app/auth" class="link-button">PCC Inventory系統（只用作Clockin/out）</a>
+  <a id="cat" href="https://hq.caterlord.com/" class="link-button">餐飲王系統</a>
+  <a id="gaia" href="https://portal.gaiaworkforce.com/#/setting" class="link-button" target="_blank" rel="noopener">Gaia UI</a>
+  <a id="foodorder" href="https://hcc21.github.io/Pacific-coffee-Revenue/foodorder.html" class="link-button">Foodorder Form</a>
+  <a id="roster" href="https://hcc21.github.io/Pacific-coffee-Revenue/Roster.html" class="link-button">單機版 Roster</a>
+  <a id="form" href="https://drive.google.com/drive/folders/1yI6vbNPonKQSwrwM38v6Q1mRR5JkUyxJ?usp=drive_link" class="link-button">分店使用表格</a>
 </div>
-
-<!-- ⭐ 其他連結 -->
-<a id="erp" href="https://hkprodapp.pacificcoffee.com/dist/#/" class="link-button">📦ERP系統</a>
-<a id="inv" href="https://pcc-inventory.web.app/auth" class="link-button">📦PCC Inventory系統(只用作Clockin/out)</a>
-<a id="cat" href="https://hq.caterlord.com/" class="link-button">📊餐飲王系統</a>
-<a id="gaia" href="https://portal.gaiaworkforce.com/#/setting" class="link-button" target="_blank">🕗 Gaia UI</a>
-<a id="gaia" href="https://hcc21.github.io/Pacific-coffee-Revenue/foodorder.html" class="link-button">🥯Foodorder Form</a>
-<a id="gaia" href="https://hcc21.github.io/Pacific-coffee-Revenue/Roster.html" class="link-button">🗓️單機版Roster</a>
-<a id="form" href="https://drive.google.com/drive/folders/1yI6vbNPonKQSwrwM38v6Q1mRR5JkUyxJ?usp=drive_link" class="link-button">📄分店使用表格</a>
-
-<script>
-/* ⭐ 登入功能 */
-function checkLogin() {
-  const input = document.getElementById("loginPassword").value;
-  const correct = "cherry2026";
-
-  if (input === correct) {
-    document.getElementById("adminLinks").style.display = "block";
-    document.getElementById("loginMessage").textContent = "";
-  } else {
-    document.getElementById("loginMessage").textContent = LANG[currentLang].loginError;
-  }
-}
-
-/* ⭐ 時鐘 */
-setInterval(() => {
-  const now = new Date();
-  document.getElementById('dateTime').textContent = now.toLocaleString();
-}, 1000);
-</script>
-
-<!-- ⭐ 分店查詢 -->
 <section style="margin-top:40px;">
-  <h2 id="storeTitle" class="section-title">選擇分店代號查詢資料</h2>
-  <br><br>
-
-  <select id="storeCodeInput" style="padding:10px; width:60%; border-radius:8px;">
-    <option value="">請選擇分店代號</option>
-  </select>
-
-  <div id="storeAddressResult" class="result-box">Address：—</div>
-  <div id="storeAddressZhResult" class="result-box">中文地址：—</div>
-  <div id="storePhoneResult" class="result-box">電話：—</div>
+  <h2 id="storeTitle" class="section-title">選擇分店代號查詢資料</h2><br><br>
+  <select id="storeCodeInput" style="padding:10px; width:60%; border-radius:8px;"><option value="">請選擇分店代號</option></select>
+  <div id="storeAddressResult" class="result-box">Address：—</div><div id="storeAddressZhResult" class="result-box">中文地址：—</div><div id="storePhoneResult" class="result-box">電話：—</div>
 </section>
 
-<script src="store-data.js"></script>
-
-<script>
-/* ⭐ 分店資料 */
-const storeNameMap = {};
-const storeNameZhMap = {};
-const addressMap = {};
-const addressZhMap = {};
-const phoneMap = {};
-
-for (const code in storeData) {
-  const s = storeData[code];
-  storeNameMap[code] = s.nameEn;
-  storeNameZhMap[code] = s.nameZh;
-  addressMap[code] = s.addressEn;
-  addressZhMap[code] = s.addressZh;
-  phoneMap[code] = s.phone;
-}
-
-window.onload = function () {
-  const select = document.getElementById("storeCodeInput");
-  const codes = Object.keys(storeNameZhMap).sort();
-
-  codes.forEach(code => {
-    const opt = document.createElement("option");
-    opt.value = code;
-    opt.textContent = code + " — " + storeNameZhMap[code];
-    select.appendChild(opt);
-  });
-};
-
-document.getElementById("storeCodeInput").addEventListener("change", function () {
-  const code = this.value;
-
-  document.getElementById("storeAddressResult").textContent =
-    LANG[currentLang].address + (addressMap[code] || "—");
-
-  document.getElementById("storeAddressZhResult").textContent =
-    LANG[currentLang].addressZh + (addressZhMap[code] || "—");
-
-  document.getElementById("storePhoneResult").textContent =
-    LANG[currentLang].phone + (phoneMap[code] || "—");
-});
-</script>
-
-<!-- ⭐ QR Code -->
 <section style="margin-top:40px;">
-  <h2 id="qrTitle" class="section-title">輸入網址轉換成 QR CODE</h2>
-  <br><br>
+  <h2 id="qrTitle" class="section-title">輸入網址轉換成 QR CODE</h2><br><br>
   <input type="text" id="urlInput" placeholder="請輸入網址" style="padding:10px; width:60%; border-radius:8px;">
-  <button id="qrBtn" onclick="generateQRCode()" style="padding:10px 20px; margin-left:10px; border-radius:8px; background-color:#4CAF50; color:white;">產生 QR Code</button>
-  <div id="qrCode" style="margin-top:20px;"></div>
+  <button id="qrBtn" onclick="generateQRCode()" style="padding:10px 20px; margin-left:10px; border-radius:8px; background:#4CAF50; color:white;">產生 QR Code</button><div id="qrCode" style="margin-top:20px;"></div>
 </section>
 
+<audio id="bgm" src="bgm.mp3" loop></audio>
+<script src="store-data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
-function generateQRCode() {
-  const url = document.getElementById('urlInput').value.trim();
-  const qrContainer = document.getElementById('qrCode');
-  qrContainer.innerHTML = '';
-
-  if (url) {
-    QRCode.toDataURL(url, function (err, src) {
-      if (!err) {
-        const img = document.createElement('img');
-        img.src = src;
-        img.style.maxWidth = '200px';
-        img.style.border = '1px solid #ccc';
-        img.style.padding = '10px';
-        img.style.background = '#fff';
-        qrContainer.appendChild(img);
-      } else {
-        qrContainer.textContent = '產生失敗，請確認網址格式';
-      }
-    });
-  } else {
-    qrContainer.textContent = LANG[currentLang].qrError;
-  }
+const LANG = {
+  zh:{title:'Cherry Area 每日通道',weatherTitle:'香港 7 日天氣預報',noticeTitle:'事項通知',noticeIntro:'可輸入單日日期，或輸入開始日期及完結日期。事項在開始日及完結日會標示通知。',noticeNameLabel:'事項',noticeStartLabel:'日期／開始日期',noticeEndLabel:'完結日期（如適用）',noticeContentLabel:'內容',noticeProcessLabel:'處理日期',noticePhotoLabel:'相片（可選）',saveNoticeBtn:'新增事項',updateNoticeBtn:'更新事項',clearNoticeBtn:'清除',cancelEdit:'取消修改',noticeFilterLabel:'選擇日期查看事項',noticeFilterBtn:'查詢日期',noticeWeekBtn:'顯示本週',today:'今日通知',period:'日期',noticeRequired:'請填寫事項、日期及內容。',dateError:'完結日期不可早於開始日期。',saved:'事項已新增。',updated:'事項已更新。',selectDate:'請先選擇日期。',deleted:'事項已刪除。',empty:'目前沒有事項。',processToday:'今日處理通知',syncing:'同步中…',synced:'已同步',syncLocal:'目前使用本機資料（尚未設定同步網址）',loginTitle:'請先登入',loginIntro:'請輸入密碼後進入頁面',loginPlaceholder:'密碼',loginSubmit:'登入',loginError:'密碼錯誤',admin1:'2026 Revenue Data',admin2:'2025 Revenue Data',admin3:'每月上載更表',admin4:'每日時鐘',erp:'ERP系統',inv:'PCC Inventory系統（只用作Clockin/out）',cat:'餐飲王系統',gaia:'Gaia UI',foodorder:'Foodorder Form',roster:'單機版 Roster',form:'分店使用表格',storeTitle:'選擇分店代號查詢資料',address:'Address：',addressZh:'中文地址：',phone:'電話：',qrTitle:'輸入網址轉換成 QR CODE',qrBtn:'產生 QR Code',qrError:'請先輸入網址'},
+  en:{title:'Cherry Area Daily Portal',weatherTitle:'Hong Kong 7-Day Weather Forecast',noticeTitle:'Notices',noticeIntro:'Enter a single date, or a start and end date. Notices are highlighted on the start and end dates.',noticeNameLabel:'Subject',noticeStartLabel:'Date / Start date',noticeEndLabel:'End date (optional)',noticeContentLabel:'Content',noticeProcessLabel:'Processing date',noticePhotoLabel:'Photo (optional)',saveNoticeBtn:'Add notice',updateNoticeBtn:'Update notice',clearNoticeBtn:'Clear',cancelEdit:'Cancel edit',noticeFilterLabel:'Choose a date to view notices',noticeFilterBtn:'Search date',noticeWeekBtn:'Show this week',today:'Today',period:'Date',noticeRequired:'Please enter a subject, date and content.',dateError:'The end date cannot be earlier than the start date.',saved:'Notice added.',updated:'Notice updated.',selectDate:'Please choose a date first.',deleted:'Notice deleted.',empty:'No notices yet.',processToday:'Processing today',syncing:'Syncing…',synced:'Synced',syncLocal:'Using local data (sync URL not configured)',loginTitle:'Login required',loginIntro:'Enter the password to continue',loginPlaceholder:'Password',loginSubmit:'Login',loginError:'Incorrect password',admin1:'2026 Revenue Data',admin2:'2025 Revenue Data',admin3:'Monthly Roster Upload',admin4:'Daily Clock-in Sheet',erp:'ERP System',inv:'PCC Inventory System (Clock-in/out only)',cat:'Caterlord System',gaia:'Gaia UI',foodorder:'Foodorder Form',roster:'Standalone Roster',form:'Store Forms',storeTitle:'Select Store Code',address:'Address: ',addressZh:'Chinese Address: ',phone:'Phone: ',qrTitle:'Convert URL to QR CODE',qrBtn:'Generate QR Code',qrError:'Please enter a URL'}
+};
+let currentLang='zh';
+function $(id){return document.getElementById(id);}
+function setLang(lang){
+  currentLang=lang; const t=LANG[lang];
+  ['title','weatherTitle','noticeTitle','noticeIntro','noticeNameLabel','noticeStartLabel','noticeEndLabel','noticeContentLabel','noticeProcessLabel','noticePhotoLabel','noticeFilterLabel','noticeFilterBtn','noticeWeekBtn','loginTitle','loginIntro','loginSubmit','admin1','admin2','admin3','admin4','erp','inv','cat','gaia','foodorder','roster','form','storeTitle','qrTitle','qrBtn'].forEach(id=>{if($(id)) $(id).textContent=t[id];});
+  $('saveNoticeBtn').textContent=editingNoticeId!==null?t.updateNoticeBtn:t.saveNoticeBtn;
+  $('clearNoticeBtn').textContent=editingNoticeId!==null?t.cancelEdit:t.clearNoticeBtn;
+  $('pagePassword').placeholder=t.loginPlaceholder;
+  renderNotices(); loadWeather();
 }
+const SYNC_API_URL='https://script.google.com/macros/s/AKfycbyeIqaCnNrjiywTGVa9MZBvTo48sOnw4OiHzliJrxuQEf6Pt62kHBUlaeuh_K3Uev8QqQ/exec';
+const PAGE_PASSWORD='Cherry123';
+let editingNoticeId=null;
+function setSyncStatus(key){if($('syncStatus'))$('syncStatus').textContent=LANG[currentLang][key]||'';}
+async function syncRequest(payload){if(!SYNC_API_URL){setSyncStatus('syncLocal');return null;}setSyncStatus('syncing');const res=await fetch(SYNC_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});if(!res.ok)throw new Error('sync failed');const data=await res.json().catch(()=>({}));setSyncStatus('synced');return data;}
+async function loadSharedNotices(){if(!SYNC_API_URL){setSyncStatus('syncLocal');renderNotices();return;}try{setSyncStatus('syncing');const res=await fetch(SYNC_API_URL+'?action=list');const data=await res.json();if(Array.isArray(data.notices)){saveNotices(data.notices);}setSyncStatus('synced');renderNotices();}catch(e){setSyncStatus('syncLocal');renderNotices();}}
+function unlockPage(){sessionStorage.setItem('cherryPageUnlocked','1');$('loginGate').style.display='none';$('pagePassword').value='';}
+$('loginForm').addEventListener('submit',function(e){e.preventDefault();if($('pagePassword').value===PAGE_PASSWORD){$('loginError').textContent='';unlockPage();}else{$('loginError').textContent=LANG[currentLang].loginError;$('pagePassword').select();}});
+if(sessionStorage.getItem('cherryPageUnlocked')==='1')unlockPage();
+function dateText(date){return date?new Date(date+'T00:00:00').toLocaleDateString(currentLang==='zh'?'zh-HK':'en-GB',{year:'numeric',month:'long',day:'numeric'}):'';}
+function todayKey(){const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(dateString,amount){const d=new Date(dateString+'T00:00:00');d.setDate(d.getDate()+amount);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function readNotices(){try{const list=JSON.parse(localStorage.getItem('cherryNotices')||'[]');let changed=false;list.forEach((n,i)=>{if(!n.id){n.id=String(n.createdAt||Date.now())+'-'+i;changed=true;}if(!n.end){n.end=n.start;changed=true;}if(!n.processDate){n.processDate=n.start;changed=true;}});if(changed)saveNotices(list);return list;}catch(e){return [];}}
+function saveNotices(list){try{localStorage.setItem('cherryNotices',JSON.stringify(list));return true;}catch(e){return false;}}
+function noticeIncludesDate(n,date){return n.start<=date&&(n.end||n.start)>=date||n.processDate===date;}
+function visibleNotices(){const list=readNotices().sort((a,b)=>a.start.localeCompare(b.start));const selected=$('noticeFilterDate').value;if(selected)return list.filter(n=>noticeIncludesDate(n,selected));const today=todayKey(),weekEnd=addDays(today,6);return list.filter(n=>(n.start<=weekEnd&&(n.end||n.start)>=today)||((n.processDate||'')>=today&&(n.processDate||'')<=weekEnd));}
+function renderNotices(){
+  const today=todayKey(), list=visibleNotices(), box=$('noticeList'); box.innerHTML='';
+  if(!list.length){box.innerHTML='<div class="empty">'+LANG[currentLang].empty+'</div>';return;}
+  list.forEach(n=>{
+    const isToday=today===n.start||today===n.end, isProcessToday=today===(n.processDate||n.start), range=n.end&&n.end!==n.start?dateText(n.start)+' – '+dateText(n.end):dateText(n.start);
+    const card=document.createElement('article'); card.className='notice-card'+(isToday?' today':'');
+    card.innerHTML='<h3></h3><div class="notice-meta"></div><p></p>'+((isToday||isProcessToday)?'<span class="notice-badge">'+(isProcessToday?LANG[currentLang].processToday:LANG[currentLang].today)+'</span>':'')+(n.photo?'<img class="notice-photo" alt="Notice photo">':'')+'<div class="notice-card-actions"><button class="edit-btn" type="button">'+(currentLang==='zh'?'修改':'Edit')+'</button><button class="danger-btn" type="button">'+(currentLang==='zh'?'刪除':'Delete')+'</button></div>';
+    card.querySelector('h3').textContent=n.name; card.querySelector('.notice-meta').textContent=LANG[currentLang].period+'：'+range+' | '+LANG[currentLang].noticeProcessLabel+'：'+dateText(n.processDate||n.start); card.querySelector('p').textContent=n.content;
+    if(n.photo)card.querySelector('img').src=n.photo;
+    card.querySelector('.edit-btn').onclick=()=>startEditNotice(n.id);
+    card.querySelector('.danger-btn').onclick=async()=>{const next=readNotices().filter(item=>item.id!==n.id);saveNotices(next);try{await syncRequest({action:'delete',id:n.id});}catch(e){setSyncStatus('syncLocal');}$('noticeMessage').textContent=LANG[currentLang].deleted;renderNotices();};
+    box.appendChild(card);
+  });
+}
+function startEditNotice(id){const n=readNotices().find(item=>item.id===id);if(!n)return;editingNoticeId=id;$('noticeName').value=n.name||'';$('noticeStart').value=n.start||'';$('noticeEnd').value=n.end||n.start||'';$('noticeContent').value=n.content||'';$('noticeProcess').value=n.processDate||n.start||'';$('noticePhoto').value='';$('saveNoticeBtn').textContent=LANG[currentLang].updateNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].cancelEdit;$('noticeMessage').textContent=currentLang==='zh'?'正在修改事項。':'Editing notice.';$('noticeForm').scrollIntoView({behavior:'smooth',block:'center'});}
+function resetNoticeForm(){$('noticeForm').reset();editingNoticeId=null;$('saveNoticeBtn').textContent=LANG[currentLang].saveNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].clearNoticeBtn;}
+$('noticeForm').addEventListener('submit',async function(e){
+  e.preventDefault();const name=$('noticeName').value.trim(),start=$('noticeStart').value,end=$('noticeEnd').value,content=$('noticeContent').value.trim(),processDate=$('noticeProcess').value,file=$('noticePhoto').files[0];
+  if(!name||!start||!processDate||!content){$('noticeMessage').textContent=LANG[currentLang].noticeRequired;return;}if(end&&end<start){$('noticeMessage').textContent=LANG[currentLang].dateError;return;}
+  const list=readNotices(),editing=editingNoticeId!==null;let photo='';if(editing){const old=list.find(n=>n.id===editingNoticeId);photo=old&&old.photo?old.photo:'';}
+  if(file){if(file.size>3*1024*1024){$('noticeMessage').textContent=currentLang==='zh'?'相片不能超過 3MB。':'Photo must be smaller than 3MB.';return;}photo=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);});}
+  const data={id:String(Date.now()),name,start,end:end||start,processDate,content,photo,createdAt:Date.now()};if(editing){const updated=list.map(n=>n.id===editingNoticeId?{...n,...data,id:editingNoticeId}:n);if(!saveNotices(updated)){$('noticeMessage').textContent=currentLang==='zh'?'儲存空間不足，請縮小相片。':'Not enough browser storage; please use a smaller photo.';return;}}else{list.push(data);if(!saveNotices(list)){$('noticeMessage').textContent=currentLang==='zh'?'儲存空間不足，請縮小相片。':'Not enough browser storage; please use a smaller photo.';return;}}
+  try{await syncRequest({action:editing?'update':'create',notice:{...data,id:editing?editingNoticeId:data.id}});}catch(e){setSyncStatus('syncLocal');}resetNoticeForm();$('noticeMessage').textContent=LANG[currentLang][editing?'updated':'saved'];renderNotices();
+});
+$('clearNoticeBtn').onclick=()=>{resetNoticeForm();$('noticeMessage').textContent='';};
+$('noticeFilterBtn').onclick=()=>{if(!$('noticeFilterDate').value){$('noticeMessage').textContent=LANG[currentLang].selectDate;return;}$('noticeMessage').textContent='';renderNotices();};
+$('noticeWeekBtn').onclick=()=>{$('noticeFilterDate').value='';$('noticeMessage').textContent='';renderNotices();};
+$('noticeFilterDate').addEventListener('change',()=>{if($('noticeFilterDate').value)renderNotices();});
+setInterval(()=>{$('dateTime').textContent=new Date().toLocaleString(currentLang==='zh'?'zh-HK':'en-HK');},1000);
+function generateQRCode(){const url=$('urlInput').value.trim(), box=$('qrCode'); box.innerHTML=''; if(!url){box.textContent=LANG[currentLang].qrError;return;} QRCode.toDataURL(url,(err,src)=>{if(err){box.textContent='產生失敗，請確認網址格式';return;}const img=document.createElement('img');img.src=src;img.style.cssText='max-width:200px;border:1px solid #ccc;padding:10px;background:#fff';box.appendChild(img);});}
+function toggleWeatherCard(card){const expanded=card.classList.toggle('expanded');card.setAttribute('aria-expanded',String(expanded));}
+async function loadWeather(){try{const apiLang=currentLang==='zh'?'tc':'en',res=await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang='+apiLang),data=await res.json();$('weatherScroll').innerHTML=data.weatherForecast.slice(0,7).map(d=>{const w=d.forecastWeather;let icon='⛅',weatherClass='weather-default';if(w.includes('雷')||w.includes('Thunder')){icon='⛈️';weatherClass='weather-storm';}else if(w.includes('雨')||w.includes('Rain')){icon='🌧️';weatherClass='weather-rainy';}else if(w.includes('晴')||w.includes('Fine')){icon='☀️';weatherClass='weather-sunny';}else if(w.includes('陰')||w.includes('Cloudy')){icon='☁️';weatherClass='weather-cloudy';}const dateLabel=d.forecastDate.substring(4,6)+'月'+d.forecastDate.substring(6,8)+'日';return '<div class="weather-card '+weatherClass+'" tabindex="0" role="button" aria-expanded="false" onclick="toggleWeatherCard(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleWeatherCard(this)}"><div class="weather-basic"><div class="weather-icon">'+icon+'</div><b>'+dateLabel+'</b><br>🌡️ '+d.forecastMintemp.value+'°C - '+d.forecastMaxtemp.value+'°C</div><div class="weather-detail">'+w+'</div></div>';}).join('');}catch(e){$('weatherScroll').textContent='無法取得天氣資料';}}
+function toggleBGM(){const bgm=$('bgm');if(bgm.paused){bgm.play();}else{bgm.pause();}}
+function changeVolume(v){$('bgm').volume=v;}
+const storeNameMap={},storeNameZhMap={},addressMap={},addressZhMap={},phoneMap={};
+function initStoreData(){if(typeof storeData==='undefined')return;for(const code in storeData){const s=storeData[code];storeNameMap[code]=s.nameEn;storeNameZhMap[code]=s.nameZh;addressMap[code]=s.addressEn;addressZhMap[code]=s.addressZh;phoneMap[code]=s.phone;}const select=$('storeCodeInput');Object.keys(storeNameZhMap).sort().forEach(code=>{const opt=document.createElement('option');opt.value=code;opt.textContent=code+' — '+storeNameZhMap[code];select.appendChild(opt);});}
+$('storeCodeInput').addEventListener('change',function(){const code=this.value;$('storeAddressResult').textContent=LANG[currentLang].address+(addressMap[code]||'—');$('storeAddressZhResult').textContent=LANG[currentLang].addressZh+(addressZhMap[code]||'—');$('storePhoneResult').textContent=LANG[currentLang].phone+(phoneMap[code]||'—');});
+window.addEventListener('load',()=>{initStoreData();renderNotices();loadSharedNotices();loadWeather();});
 </script>
-
-<!-- ⭐ 天氣預報（不自動滑動 + 文字不出界） -->
-<script>
-async function loadWeather() {
-  try {
-    const apiLang = currentLang === "zh" ? "tc" : "en";
-    const res = await fetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=${apiLang}`);
-    const data = await res.json();
-    const days = data.weatherForecast.slice(0, 7);
-
-    let html = "";
-
-    days.forEach(d => {
-      const w = d.forecastWeather;
-
-      let icon = "⛅";
-      if (w.includes("晴") || w.includes("Fine")) icon = "☀️";
-      if (w.includes("雨") || w.includes("Rain")) icon = "🌧️";
-      if (w.includes("雷") || w.includes("Thunder")) icon = "⛈️";
-      if (w.includes("陰") || w.includes("Cloudy")) icon = "☁️";
-
-      let bg = "linear-gradient(135deg, #f0f0f0, #dcdcdc)";
-      if (icon === "☀️") bg = "linear-gradient(135deg, #ffe08a, #ffcf40)";
-      if (icon === "🌧️" || icon === "⛈️") bg = "linear-gradient(135deg, #8ec5fc, #6ea8ff)";
-
-      html += `
-        <div style="
-          min-width:140px;
-          background:${bg};
-          padding:12px;
-          border-radius:12px;
-          box-shadow:0 0 6px rgba(0,0,0,0.15);
-          font-size:0.9em;
-          text-align:left;
-          color:#333;
-          white-space: normal;
-          word-break: break-word;
-        ">
-          <div style="font-size:1.4em;">${icon}</div>
-          <b>${d.forecastDate.substring(4,6)}月${d.forecastDate.substring(6,8)}日</b><br>
-          ${w}<br>
-          🌡️ ${d.forecastMintemp.value}°C - ${d.forecastMaxtemp.value}°C
-        </div>
-      `;
-    });
-
-    document.getElementById("weatherScroll").innerHTML = html;
-
-  } catch (e) {
-    document.getElementById("weatherScroll").innerHTML = "⚠️ 無法取得天氣資料";
-  }
-}
-
-loadWeather();
-</script>
-
-<!-- ⭐ 背景音樂播放器 -->
-<audio id="bgm" src="bgm.mp3" loop></audio>
-
-<script>
-let bgmPlaying = false;
-
-function toggleBGM() {
-  const bgm = document.getElementById("bgm");
-
-  if (!bgmPlaying) {
-    bgm.play();
-    bgmPlaying = true;
-  } else {
-    bgm.pause();
-    bgmPlaying = false;
-  }
-}
-
-function changeVolume(v) {
-  const bgm = document.getElementById("bgm");
-  bgm.volume = v;
-}
-</script>
-
 </body>
 </html>

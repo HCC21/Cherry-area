@@ -797,15 +797,6 @@ Object.assign(storeData, {
     district: "HK"
   },
 
-  "TEM": {
-    nameEn: "Temple Mall",
-    nameZh: "黃大仙中心",
-    addressEn: "Shop no. N111 & N112, Level 1, Temple Mall North, Upper Wong Tai Sin Estate, Lung Cheung Road, Wong Tai Sin, Kowloon",
-    addressZh: "九龍黃大仙龍翔道黃大仙中心北館1樓N111及N112號舖",
-    phone: "5486 0642",
-    district: "KLN"
-  },
-
   "TKH": {
     nameEn: "Tseung Kwan O Hospital",
     nameZh: "將軍澳醫院",
