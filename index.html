@@ -21,8 +21,14 @@
   input, textarea, select, button { font:inherit; }
   input[type="text"], input[type="date"], textarea, select { width:100%; padding:5px 6px; border:1px solid #bbb; border-radius:6px; background:#fff; font-size:.9em; }
   textarea { min-height:45px; resize:vertical; }
-  .notice-filter { display:flex; align-items:flex-end; gap:5px; margin:5px 0 1px; text-align:left; flex-wrap:wrap; font-size:.78em; }
-  .notice-filter label { flex:1 1 190px; display:flex; flex-direction:column; gap:3px; font-weight:bold; }
+  .notice-filter, .notice-search { display:flex; align-items:flex-end; gap:5px; margin:5px 0 1px; text-align:left; flex-wrap:wrap; font-size:.78em; }
+  .notice-search { align-items:center; width:100%; }
+  .notice-search input[type="search"] { width:100%; }
+  .notice-search select { width:100%; }
+  .notice-search label { flex:1 1 180px; display:flex; flex-direction:column; gap:3px; font-weight:bold; }
+  .notice-search input, .notice-search select { width:100%; }
+  .notice-category-label { display:flex; flex-direction:column; gap:3px; font-weight:bold; flex:1 1 180px; }
+  .notice-filter label { flex:1 1 190px; display:flex; flex-direction:column; gap:3px; font-weight:bold; min-width:0; }
   .notice-filter button { border:0; padding:5px 7px; border-radius:6px; color:#fff; cursor:pointer; font-size:.9em; }
   .notice-filter .filter-btn { background:#4c8fca; } .notice-filter .week-btn { background:#777; }
   .primary-btn, .secondary-btn, .danger-btn { border:0; padding:6px 10px; border-radius:6px; color:#fff; cursor:pointer; font-size:.8em; }
@@ -32,6 +38,10 @@
   .notice-card { background:#fff; border-left:3px solid var(--green); border-radius:6px; padding:6px 8px; box-shadow:0 2px 5px rgba(0,0,0,.1); font-size:.78em; }
   .notice-card.today { border-left-color:#f39c12; box-shadow:0 0 0 2px rgba(243,156,18,.2); }
   .notice-card h3 { margin:0 0 2px; } .notice-card p { white-space:pre-wrap; margin:3px 0; }
+  .notice-summary { cursor:pointer; }
+  .notice-details { display:none; }
+  .notice-card.expanded .notice-details { display:block; }
+  .notice-category { display:inline-block; margin-right:4px; padding:1px 5px; border-radius:8px; background:#e8f2ff; color:#285b91; font-size:.82em; font-weight:bold; }
   .notice-meta { color:#666; font-size:.82em; } .notice-badge { display:inline-block; padding:1px 5px; border-radius:99px; background:#fff0cf; color:#895c00; font-size:.75em; font-weight:bold; }
   .notice-photo { max-width:100%; max-height:80px; display:block; margin-top:4px; border-radius:5px; object-fit:contain; cursor:zoom-in; }
   #imageViewer { position:fixed; inset:0; z-index:2500; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.82); cursor:zoom-out; }
@@ -69,8 +79,9 @@
   .audio-controls input[type="range"] { width:100px; max-width:25vw; }
   .notice-form, .notice-form label, .notice-form input, .notice-form textarea, .notice-form select, .notice-form button, .notice-filter, .notice-filter label { min-width:0; max-width:100%; }
   .notice-form input[type="text"], .notice-form input[type="date"], .notice-form input[type="file"], .notice-form textarea, .notice-form select { width:100%; }
+  .notice-search input, .notice-search select { width:100%; }
   #noticePanel { overflow:hidden; }
-  @media (max-width:650px) { h1 { font-size:1.45em; padding:9px 18px; } .audio-controls { max-width:calc(100% - 20px); flex-wrap:wrap; justify-content:center; } .audio-controls input[type="range"] { max-width:120px; } #noticePanel { width:calc(100% - 16px); max-width:none; padding:6px; } .notice-form { width:100%; grid-template-columns:1fr; } .notice-form .full, .notice-actions { grid-column:auto; } .notice-actions { width:100%; justify-content:stretch; flex-wrap:wrap; } .notice-actions button { flex:1 1 0; min-width:0; } .notice-filter { width:100%; } .notice-filter label { flex:1 1 100%; width:100%; } .notice-filter button { flex:1 1 0; min-width:0; } .result-box { width:90%; } }
+  @media (max-width:650px) { h1 { font-size:1.45em; padding:9px 18px; } .audio-controls { max-width:calc(100% - 20px); flex-wrap:wrap; justify-content:center; } .audio-controls input[type="range"] { max-width:120px; } #noticePanel { width:calc(100% - 16px); max-width:none; padding:6px; } .notice-search { width:100%; } .notice-search label { flex:1 1 100%; width:100%; } .notice-form { width:100%; grid-template-columns:1fr; }     .notice-form .full, .notice-actions { grid-column:auto; } .notice-actions { width:100%; justify-content:stretch; flex-wrap:wrap; } .notice-actions button { flex:1 1 0; min-width:0; } .notice-filter { width:100%; } .notice-filter label { flex:1 1 100%; width:100%; } .notice-filter button { flex:1 1 0; min-width:0; } .result-box { width:90%; } }
 </style>
 </head>
 <body>
@@ -113,9 +124,10 @@
 
 <section class="panel" id="noticePanel">
   <h2 id="noticeTitle" class="section-title" style="font-size:.9em; padding:4px 10px; margin:3px 0;">事項通知</h2>
-  <p id="noticeIntro" style="font-size:.72em; margin:3px 0 5px;">可輸入單日日期，或輸入開始日期及完結日期。事項在開始日及完結日會標示通知。</p>
+  <p id="noticeIntro" style="font-size:.72em; margin:3px 0 5px;">可輸入單日日期，或輸入開始日期及完結日期；提示只在開始日、完結日及處理日期當日顯示。</p>
   <form id="noticeForm" class="notice-form">
     <label class="full"><span id="noticeNameLabel">事項</span><input id="noticeName" type="text" required maxlength="120" placeholder="例如：分店培訓"></label>
+    <label class="full"><span id="noticeCategoryLabel">分類</span><select id="noticeCategory" required></select></label>
     <label><span id="noticeStartLabel">日期／開始日期</span><input id="noticeStart" type="date" required></label>
     <label><span id="noticeEndLabel">完結日期（如適用）</span><input id="noticeEnd" type="date"></label>
     <label class="full"><span id="noticeContentLabel">內容</span><textarea id="noticeContent" required maxlength="2000" placeholder="輸入事項內容"></textarea></label>
@@ -125,6 +137,10 @@
   </form>
   <div id="noticeMessage" role="status" style="font-weight:bold;margin-top:6px;"></div>
   <div id="syncStatus" class="sync-status"></div>
+  <div class="notice-search">
+    <label><span id="noticeSearchLabel">搜尋事項</span><input id="noticeSearchText" type="search" placeholder="輸入相關文字搜尋"></label>
+    <label class="notice-category-label"><span id="noticeCategoryFilterLabel">分類</span><select id="noticeCategoryFilter"></select></label>
+  </div>
   <div class="notice-filter">
     <label><span id="noticeFilterLabel">選擇日期查看事項</span><input id="noticeFilterDate" type="date"></label>
     <button class="filter-btn" type="button" id="noticeFilterBtn">查詢日期</button>
@@ -163,20 +179,23 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
 const LANG = {
-  zh:{title:'Cherry Area 每日通道',weatherTitle:'香港 7 日天氣預報',noticeTitle:'事項通知',noticeIntro:'可輸入單日日期，或輸入開始日期及完結日期。事項在開始日及完結日會標示通知。',noticeNameLabel:'事項',noticeStartLabel:'日期／開始日期',noticeEndLabel:'完結日期（如適用）',noticeContentLabel:'內容',noticeProcessLabel:'處理日期',noticePhotoLabel:'相片（可選）',saveNoticeBtn:'新增事項',updateNoticeBtn:'更新事項',clearNoticeBtn:'清除',cancelEdit:'取消修改',noticeFilterLabel:'選擇日期查看事項',noticeFilterBtn:'查詢日期',noticeWeekBtn:'顯示本週',today:'今日通知',period:'日期',noticeRequired:'請填寫事項、日期及內容。',dateError:'完結日期不可早於開始日期。',saved:'事項已新增。',updated:'事項已更新。',selectDate:'請先選擇日期。',deleted:'事項已刪除。',empty:'目前沒有事項。',processToday:'今日處理通知',syncing:'同步中…',synced:'已同步',syncLocal:'目前使用本機資料（尚未設定同步網址）',loginTitle:'請先登入',loginIntro:'請輸入密碼後進入頁面',loginPlaceholder:'密碼',loginSubmit:'登入',loginError:'密碼錯誤',admin1:'2026 Revenue Data',admin2:'2025 Revenue Data',admin3:'每月上載更表',admin4:'每日時鐘',erp:'ERP系統',inv:'PCC Inventory系統（只用作Clockin/out）',cat:'餐飲王系統',gaia:'Gaia UI',foodorder:'Foodorder Form',roster:'單機版 Roster',form:'分店使用表格',storeTitle:'選擇分店代號查詢資料',address:'Address：',addressZh:'中文地址：',phone:'電話：',qrTitle:'輸入網址轉換成 QR CODE',qrBtn:'產生 QR Code',qrError:'請先輸入網址'},
-  en:{title:'Cherry Area Daily Portal',weatherTitle:'Hong Kong 7-Day Weather Forecast',noticeTitle:'Notices',noticeIntro:'Enter a single date, or a start and end date. Notices are highlighted on the start and end dates.',noticeNameLabel:'Subject',noticeStartLabel:'Date / Start date',noticeEndLabel:'End date (optional)',noticeContentLabel:'Content',noticeProcessLabel:'Processing date',noticePhotoLabel:'Photo (optional)',saveNoticeBtn:'Add notice',updateNoticeBtn:'Update notice',clearNoticeBtn:'Clear',cancelEdit:'Cancel edit',noticeFilterLabel:'Choose a date to view notices',noticeFilterBtn:'Search date',noticeWeekBtn:'Show this week',today:'Today',period:'Date',noticeRequired:'Please enter a subject, date and content.',dateError:'The end date cannot be earlier than the start date.',saved:'Notice added.',updated:'Notice updated.',selectDate:'Please choose a date first.',deleted:'Notice deleted.',empty:'No notices yet.',processToday:'Processing today',syncing:'Syncing…',synced:'Synced',syncLocal:'Using local data (sync URL not configured)',loginTitle:'Login required',loginIntro:'Enter the password to continue',loginPlaceholder:'Password',loginSubmit:'Login',loginError:'Incorrect password',admin1:'2026 Revenue Data',admin2:'2025 Revenue Data',admin3:'Monthly Roster Upload',admin4:'Daily Clock-in Sheet',erp:'ERP System',inv:'PCC Inventory System (Clock-in/out only)',cat:'Caterlord System',gaia:'Gaia UI',foodorder:'Foodorder Form',roster:'Standalone Roster',form:'Store Forms',storeTitle:'Select Store Code',address:'Address: ',addressZh:'Chinese Address: ',phone:'Phone: ',qrTitle:'Convert URL to QR CODE',qrBtn:'Generate QR Code',qrError:'Please enter a URL'}
+  zh:{title:'Cherry Area 每日通道',weatherTitle:'香港 7 日天氣預報',noticeTitle:'事項通知',noticeIntro:'可輸入單日日期，或輸入開始日期及完結日期；提示只在開始日、完結日及處理日期當日顯示。',noticeNameLabel:'事項',noticeCategoryLabel:'分類',noticeSearchLabel:'搜尋事項',noticeCategoryFilterLabel:'分類篩選',allCategories:'全部分類',noticeStartLabel:'日期／開始日期',noticeEndLabel:'完結日期（如適用）',noticeContentLabel:'內容',noticeProcessLabel:'處理日期',noticePhotoLabel:'相片（可選）',saveNoticeBtn:'新增事項',updateNoticeBtn:'更新事項',clearNoticeBtn:'清除',cancelEdit:'取消修改',noticeFilterLabel:'選擇日期查看事項',noticeFilterBtn:'查詢日期',noticeWeekBtn:'顯示本週',today:'今日通知',period:'日期',noticeRequired:'請填寫事項、日期及內容。',dateError:'完結日期不可早於開始日期。',saved:'事項已新增。',updated:'事項已更新。',selectDate:'請先選擇日期。',deleted:'事項已刪除。',empty:'目前沒有事項。',processToday:'今日處理通知',syncing:'同步中…',synced:'已同步',syncLocal:'目前使用本機資料（尚未設定同步網址）',loginTitle:'請先登入',loginIntro:'請輸入密碼後進入頁面',loginPlaceholder:'密碼',loginSubmit:'登入',loginError:'密碼錯誤',admin1:'2026 Revenue Data',admin2:'2025 Revenue Data',admin3:'每月上載更表',admin4:'每日時鐘',erp:'ERP系統',inv:'PCC Inventory系統（只用作Clockin/out）',cat:'餐飲王系統',gaia:'Gaia UI',foodorder:'Foodorder Form',roster:'單機版 Roster',form:'分店使用表格',storeTitle:'選擇分店代號查詢資料',address:'Address：',addressZh:'中文地址：',phone:'電話：',qrTitle:'輸入網址轉換成 QR CODE',qrBtn:'產生 QR Code',qrError:'請先輸入網址'},
+  en:{title:'Cherry Area Daily Portal',weatherTitle:'Hong Kong 7-Day Weather Forecast',noticeTitle:'Notices',noticeIntro:'Enter a single date, or a start and end date; alerts appear only on the start date, end date and processing date.',noticeNameLabel:'Subject',noticeCategoryLabel:'Category',noticeSearchLabel:'Search notices',noticeCategoryFilterLabel:'Category filter',allCategories:'All categories',noticeStartLabel:'Date / Start date',noticeEndLabel:'End date (optional)',noticeContentLabel:'Content',noticeProcessLabel:'Processing date',noticePhotoLabel:'Photo (optional)',saveNoticeBtn:'Add notice',updateNoticeBtn:'Update notice',clearNoticeBtn:'Clear',cancelEdit:'Cancel edit',noticeFilterLabel:'Choose a date to view notices',noticeFilterBtn:'Search date',noticeWeekBtn:'Show this week',today:'Today',period:'Date',noticeRequired:'Please enter a subject, date and content.',dateError:'The end date cannot be earlier than the start date.',saved:'Notice added.',updated:'Notice updated.',selectDate:'Please choose a date first.',deleted:'Notice deleted.',empty:'No notices yet.',processToday:'Processing today',syncing:'Syncing…',synced:'Synced',syncLocal:'Using local data (sync URL not configured)',loginTitle:'Login required',loginIntro:'Enter the password to continue',loginPlaceholder:'Password',loginSubmit:'Login',loginError:'Incorrect password',admin1:'2026 Revenue Data',admin2:'2025 Revenue Data',admin3:'Monthly Roster Upload',admin4:'Daily Clock-in Sheet',erp:'ERP System',inv:'PCC Inventory System (Clock-in/out only)',cat:'Caterlord System',gaia:'Gaia UI',foodorder:'Foodorder Form',roster:'Standalone Roster',form:'Store Forms',storeTitle:'Select Store Code',address:'Address: ',addressZh:'Chinese Address: ',phone:'Phone: ',qrTitle:'Convert URL to QR CODE',qrBtn:'Generate QR Code',qrError:'Please enter a URL'}
 };
 let currentLang='zh';
+const NOTICE_CATEGORIES=['營運','EHS','貨倉','食物','MKT','Voucher','商品','會員','第三方推廣','飲品推廣'];
 function $(id){return document.getElementById(id);}
+function populateCategoryOptions(){const select=$('noticeCategory'),filter=$('noticeCategoryFilter');if(!select||!filter)return;const selected=select.value,filterValue=filter.value;select.innerHTML='<option value="">'+(currentLang==='zh'?'請選擇分類':'Select category')+'</option>'+NOTICE_CATEGORIES.map(c=>'<option value="'+c+'">'+c+'</option>').join('');filter.innerHTML='<option value="">'+LANG[currentLang].allCategories+'</option>'+NOTICE_CATEGORIES.map(c=>'<option value="'+c+'">'+c+'</option>').join('');if(selected)select.value=selected;if(filterValue)filter.value=filterValue;}
 function setLang(lang){
   currentLang=lang; const t=LANG[lang];
-  ['title','weatherTitle','noticeTitle','noticeIntro','noticeNameLabel','noticeStartLabel','noticeEndLabel','noticeContentLabel','noticeProcessLabel','noticePhotoLabel','noticeFilterLabel','noticeFilterBtn','noticeWeekBtn','loginTitle','loginIntro','loginSubmit','admin1','admin2','admin3','admin4','erp','inv','cat','gaia','foodorder','roster','form','storeTitle','qrTitle','qrBtn'].forEach(id=>{if($(id)) $(id).textContent=t[id];});
+  ['title','weatherTitle','noticeTitle','noticeIntro','noticeNameLabel','noticeCategoryLabel','noticeSearchLabel','noticeCategoryFilterLabel','noticeStartLabel','noticeEndLabel','noticeContentLabel','noticeProcessLabel','noticePhotoLabel','noticeFilterLabel','noticeFilterBtn','noticeWeekBtn','loginTitle','loginIntro','loginSubmit','admin1','admin2','admin3','admin4','erp','inv','cat','gaia','foodorder','roster','form','storeTitle','qrTitle','qrBtn'].forEach(id=>{if($(id)) $(id).textContent=t[id];});
+  populateCategoryOptions();
   $('saveNoticeBtn').textContent=editingNoticeId!==null?t.updateNoticeBtn:t.saveNoticeBtn;
   $('clearNoticeBtn').textContent=editingNoticeId!==null?t.cancelEdit:t.clearNoticeBtn;
   $('pagePassword').placeholder=t.loginPlaceholder;
   renderNotices(); loadWeather();
 }
-const SYNC_API_URL='https://script.google.com/macros/s/AKfycbzAXirx6-VqG-X2CbRtRmV6MpHfuQ-JI8ORqmjOFP2-wjQ39HuTOXXuHTxmhbvlBCjN/exec';
+const SYNC_API_URL='https://script.google.com/macros/s/AKfycbyUEprbJVm2rYBAYesyMEmnWfcqtwWQVilneDOFPhTLTIZ0Jg3FtKS0otee2ne5e7nb/exec';
 const PAGE_PASSWORD='Cherry123';
 let editingNoticeId=null;
 function setSyncStatus(key){if($('syncStatus'))$('syncStatus').textContent=LANG[currentLang][key]||'';}
@@ -190,25 +209,27 @@ if(sessionStorage.getItem('cherryPageUnlocked')==='1')unlockPage();
 function dateText(date){return date?new Date(date+'T00:00:00').toLocaleDateString(currentLang==='zh'?'zh-HK':'en-GB',{year:'numeric',month:'long',day:'numeric'}):'';}
 function todayKey(){const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function addDays(dateString,amount){const d=new Date(dateString+'T00:00:00');d.setDate(d.getDate()+amount);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function readNotices(){try{const list=JSON.parse(localStorage.getItem('cherryNotices')||'[]');let changed=false;list.forEach((n,i)=>{if(!n.id){n.id=String(n.createdAt||Date.now())+'-'+i;changed=true;}if(!n.end){n.end=n.start;changed=true;}if(!n.processDate){n.processDate=n.start;changed=true;}if(!n.photo&&n.photoUrl){n.photo=n.photoUrl;changed=true;}if(n.photo){const normalized=normalizePhotoUrl(n.photo);if(normalized!==n.photo){n.photo=normalized;changed=true;}}});if(changed)saveNotices(list);return list;}catch(e){return [];}}
+function readNotices(){try{const list=JSON.parse(localStorage.getItem('cherryNotices')||'[]');let changed=false;list.forEach((n,i)=>{if(!n.id){n.id=String(n.createdAt||Date.now())+'-'+i;changed=true;}if(!n.end){n.end=n.start;changed=true;}if(!n.processDate){n.processDate=n.start;changed=true;}if(!n.category){n.category='營運';changed=true;}if(!n.photo&&n.photoUrl){n.photo=n.photoUrl;changed=true;}if(n.photo){const normalized=normalizePhotoUrl(n.photo);if(normalized!==n.photo){n.photo=normalized;changed=true;}}});if(changed)saveNotices(list);return list;}catch(e){return [];}}
 function saveNotices(list){try{localStorage.setItem('cherryNotices',JSON.stringify(list));return true;}catch(e){return false;}}
 function noticeIncludesDate(n,date){return n.start<=date&&(n.end||n.start)>=date||n.processDate===date;}
-function visibleNotices(){const list=readNotices().sort((a,b)=>a.start.localeCompare(b.start));const selected=$('noticeFilterDate').value;if(selected)return list.filter(n=>noticeIncludesDate(n,selected));const today=todayKey(),weekEnd=addDays(today,6);return list.filter(n=>(n.start<=weekEnd&&(n.end||n.start)>=today)||((n.processDate||'')>=today&&(n.processDate||'')<=weekEnd));}
+function visibleNotices(){const list=readNotices().sort((a,b)=>a.start.localeCompare(b.start));const selected=$('noticeFilterDate').value;const search=($('noticeSearchText').value||'').trim().toLocaleLowerCase();const category=$('noticeCategoryFilter').value;let filtered=list;if(selected)filtered=filtered.filter(n=>noticeIncludesDate(n,selected));else{const today=todayKey(),weekEnd=addDays(today,6);filtered=filtered.filter(n=>(n.start<=weekEnd&&(n.end||n.start)>=today)||((n.processDate||'')>=today&&(n.processDate||'')<=weekEnd));}if(search)filtered=filtered.filter(n=>[n.name,n.content,n.category].some(value=>String(value||'').toLocaleLowerCase().includes(search)));if(category)filtered=filtered.filter(n=>(n.category||'營運')===category);return filtered;}
+function toggleNoticeDetails(card){const summary=card.querySelector('.notice-summary'),expanded=card.classList.toggle('expanded');if(summary)summary.setAttribute('aria-expanded',String(expanded));}
 function renderNotices(){
   const today=todayKey(), list=visibleNotices(), box=$('noticeList'); box.innerHTML='';
   if(!list.length){box.innerHTML='<div class="empty">'+LANG[currentLang].empty+'</div>';return;}
   list.forEach(n=>{
     const isToday=today===n.start||today===n.end, isProcessToday=today===(n.processDate||n.start), range=n.end&&n.end!==n.start?dateText(n.start)+' – '+dateText(n.end):dateText(n.start);
     const card=document.createElement('article'); card.className='notice-card'+(isToday?' today':'');
-    card.innerHTML='<h3></h3><div class="notice-meta"></div><p></p>'+((isToday||isProcessToday)?'<span class="notice-badge">'+(isProcessToday?LANG[currentLang].processToday:LANG[currentLang].today)+'</span>':'')+(n.photo?'<img class="notice-photo" alt="Notice photo">':'')+'<div class="notice-card-actions"><button class="edit-btn" type="button">'+(currentLang==='zh'?'修改':'Edit')+'</button><button class="danger-btn" type="button">'+(currentLang==='zh'?'刪除':'Delete')+'</button></div>';
-    card.querySelector('h3').textContent=n.name; card.querySelector('.notice-meta').textContent=LANG[currentLang].period+'：'+range+' | '+LANG[currentLang].noticeProcessLabel+'：'+dateText(n.processDate||n.start); card.querySelector('p').textContent=n.content;
+    card.innerHTML='<div class="notice-summary" tabindex="0" role="button" aria-expanded="false"><span class="notice-category"></span><h3></h3><div class="notice-meta"></div>'+((isToday||isProcessToday)?'<span class="notice-badge">'+(isProcessToday?LANG[currentLang].processToday:LANG[currentLang].today)+'</span>':'')+'</div><div class="notice-details"><p></p>'+ (n.photo?'<img class="notice-photo" alt="Notice photo">':'')+'</div><div class="notice-card-actions"><button class="edit-btn" type="button">'+(currentLang==='zh'?'修改':'Edit')+'</button><button class="danger-btn" type="button">'+(currentLang==='zh'?'刪除':'Delete')+'</button></div>';
+    card.querySelector('.notice-category').textContent=n.category||'營運'; card.querySelector('h3').textContent=n.name; card.querySelector('.notice-meta').textContent=LANG[currentLang].period+'：'+range+' | '+LANG[currentLang].noticeProcessLabel+'：'+dateText(n.processDate||n.start); card.querySelector('p').textContent=n.content;
+    card.querySelector('.notice-summary').onclick=()=>toggleNoticeDetails(card);card.querySelector('.notice-summary').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleNoticeDetails(card);}};
     if(n.photo){const image=card.querySelector('img'),candidates=drivePhotoCandidates(n.photo);let candidateIndex=0;image.referrerPolicy='no-referrer';image.src=candidates[candidateIndex];image.onclick=()=>openImageViewer(image.src);image.onerror=()=>{candidateIndex++;if(candidateIndex<candidates.length){image.src=candidates[candidateIndex];}else{image.alt=currentLang==='zh'?'圖片無法顯示，請確認 Drive 共用權限。':'Image unavailable; please check Drive sharing permissions.';image.classList.add('photo-error');}};}
     card.querySelector('.edit-btn').onclick=()=>startEditNotice(n.id);
     card.querySelector('.danger-btn').onclick=async()=>{try{await syncRequest({action:'delete',id:n.id});const next=readNotices().filter(item=>item.id!==n.id);saveNotices(next);$('noticeMessage').textContent=LANG[currentLang].deleted;renderNotices();}catch(e){setSyncStatus('syncLocal');$('noticeMessage').textContent=currentLang==='zh'?'同步失敗，事項未刪除。請檢查 Apps Script 部署及 Google Sheet 權限。':'Sync failed; notice was not deleted.';}};
     box.appendChild(card);
   });
 }
-function startEditNotice(id){const n=readNotices().find(item=>item.id===id);if(!n)return;editingNoticeId=id;$('noticeName').value=n.name||'';$('noticeStart').value=n.start||'';$('noticeEnd').value=n.end||n.start||'';$('noticeContent').value=n.content||'';$('noticeProcess').value=n.processDate||n.start||'';$('noticePhoto').value='';$('saveNoticeBtn').textContent=LANG[currentLang].updateNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].cancelEdit;$('noticeMessage').textContent=currentLang==='zh'?'正在修改事項。':'Editing notice.';$('noticeForm').scrollIntoView({behavior:'smooth',block:'center'});}
+function startEditNotice(id){const n=readNotices().find(item=>item.id===id);if(!n)return;editingNoticeId=id;$('noticeName').value=n.name||'';$('noticeCategory').value=n.category||'營運';$('noticeStart').value=n.start||'';$('noticeEnd').value=n.end||n.start||'';$('noticeContent').value=n.content||'';$('noticeProcess').value=n.processDate||n.start||'';$('noticePhoto').value='';$('saveNoticeBtn').textContent=LANG[currentLang].updateNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].cancelEdit;$('noticeMessage').textContent=currentLang==='zh'?'正在修改事項。':'Editing notice.';$('noticeForm').scrollIntoView({behavior:'smooth',block:'center'});}
 function resetNoticeForm(){$('noticeForm').reset();editingNoticeId=null;$('saveNoticeBtn').textContent=LANG[currentLang].saveNoticeBtn;$('clearNoticeBtn').textContent=LANG[currentLang].clearNoticeBtn;}
 function preparePhotoForSync(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const image=new Image();image.onerror=reject;image.onload=()=>{const maxSide=1600,scale=Math.min(1,maxSide/Math.max(image.naturalWidth,image.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.78));};image.src=reader.result;};reader.readAsDataURL(file);});}
 $('noticeForm').addEventListener('submit',async function(e){
@@ -216,13 +237,15 @@ $('noticeForm').addEventListener('submit',async function(e){
   if(!name||!start||!processDate||!content){$('noticeMessage').textContent=LANG[currentLang].noticeRequired;return;}if(end&&end<start){$('noticeMessage').textContent=LANG[currentLang].dateError;return;}
   const list=readNotices(),editing=editingNoticeId!==null;let photo='';if(editing){const old=list.find(n=>n.id===editingNoticeId);photo=old&&old.photo?old.photo:'';}
   if(file){if(file.size>10*1024*1024){$('noticeMessage').textContent=currentLang==='zh'?'相片不能超過 10MB。':'Photo must be smaller than 10MB.';return;}try{photo=await preparePhotoForSync(file);}catch(err){$('noticeMessage').textContent=currentLang==='zh'?'相片讀取失敗，請重新選擇。':'Unable to read the photo. Please choose it again.';return;}}
-  const data={id:editing?editingNoticeId:String(Date.now()),name,start,end:end||start,processDate,content,photo,createdAt:editing?(list.find(n=>n.id===editingNoticeId)||{}).createdAt||Date.now():Date.now()};
+  const category=$('noticeCategory').value;const data={id:editing?editingNoticeId:String(Date.now()),name,category,start,end:end||start,processDate,content,photo,createdAt:editing?(list.find(n=>n.id===editingNoticeId)||{}).createdAt||Date.now():Date.now()};
   try{const response=await syncRequest({action:editing?'update':'create',notice:data});const syncedNotice=response&&response.result?{...response.result,photo:normalizePhotoUrl(response.result.photo||response.result.photoUrl||data.photo)}:{...data,photo:normalizePhotoUrl(data.photo)};const next=editing?list.map(n=>n.id===editingNoticeId?{...n,...syncedNotice,id:editingNoticeId}:n):[...list,syncedNotice];if(!saveNotices(next))throw new Error('local storage failed');resetNoticeForm();$('noticeMessage').textContent=LANG[currentLang][editing?'updated':'saved'];renderNotices();}catch(e){setSyncStatus('syncLocal');$('noticeMessage').textContent=currentLang==='zh'?'同步失敗，事項未儲存。請檢查 Apps Script 是否已重新部署及 Google Sheet／Drive 權限。':'Sync failed; notice was not saved. Please check the Apps Script deployment and Google Sheet/Drive permissions.';}
 });
 $('clearNoticeBtn').onclick=()=>{resetNoticeForm();$('noticeMessage').textContent='';};
 $('noticeFilterBtn').onclick=()=>{if(!$('noticeFilterDate').value){$('noticeMessage').textContent=LANG[currentLang].selectDate;return;}$('noticeMessage').textContent='';renderNotices();};
 $('noticeWeekBtn').onclick=()=>{$('noticeFilterDate').value='';$('noticeMessage').textContent='';renderNotices();};
-$('noticeFilterDate').addEventListener('change',()=>{if($('noticeFilterDate').value)renderNotices();});
+  $('noticeFilterDate').addEventListener('change',()=>{if($('noticeFilterDate').value)renderNotices();});
+  $('noticeSearchText').addEventListener('input',()=>renderNotices());
+  $('noticeCategoryFilter').addEventListener('change',()=>renderNotices());
 setInterval(()=>{$('dateTime').textContent=new Date().toLocaleString(currentLang==='zh'?'zh-HK':'en-HK');},1000);
 function generateQRCode(){const url=$('urlInput').value.trim(), box=$('qrCode'); box.innerHTML=''; if(!url){box.textContent=LANG[currentLang].qrError;return;} QRCode.toDataURL(url,(err,src)=>{if(err){box.textContent='產生失敗，請確認網址格式';return;}const img=document.createElement('img');img.src=src;img.style.cssText='max-width:200px;border:1px solid #ccc;padding:10px;background:#fff';box.appendChild(img);});}
 function openImageViewer(src){if(!src)return;$('imageViewerImage').src=src;$('imageViewer').style.display='flex';}
@@ -236,7 +259,7 @@ function changeVolume(v){$('bgm').volume=v;}
 const storeNameMap={},storeNameZhMap={},addressMap={},addressZhMap={},phoneMap={};
 function initStoreData(){if(typeof storeData==='undefined')return;for(const code in storeData){const s=storeData[code];storeNameMap[code]=s.nameEn;storeNameZhMap[code]=s.nameZh;addressMap[code]=s.addressEn;addressZhMap[code]=s.addressZh;phoneMap[code]=s.phone;}const select=$('storeCodeInput');Object.keys(storeNameZhMap).sort().forEach(code=>{const opt=document.createElement('option');opt.value=code;opt.textContent=code+' — '+storeNameZhMap[code];select.appendChild(opt);});}
 $('storeCodeInput').addEventListener('change',function(){const code=this.value;$('storeAddressResult').textContent=LANG[currentLang].address+(addressMap[code]||'—');$('storeAddressZhResult').textContent=LANG[currentLang].addressZh+(addressZhMap[code]||'—');$('storePhoneResult').textContent=LANG[currentLang].phone+(phoneMap[code]||'—');});
-window.addEventListener('load',()=>{initStoreData();renderNotices();loadSharedNotices();loadWeather();});
+window.addEventListener('load',()=>{initStoreData();populateCategoryOptions();renderNotices();loadSharedNotices();loadWeather();});
 </script>
 </body>
 </html>
