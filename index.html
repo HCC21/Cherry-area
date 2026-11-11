@@ -100,7 +100,7 @@ const LANG = {
     rev26: "📊2026 Revenue Data",
     rev25: "📊2025 Revenue Data",
     mh: "🕗每日時鐘",
-   kee: "📊美團系統",
+    kee: "📊美團系統",
     yin: "📊Yindii系統",
     cat: "📊餐飲王系統",
     erp: "📦ERP系統",
@@ -108,6 +108,7 @@ const LANG = {
     gaia: "🕗 Gaia UI",
     form: "📄分店使用表格",
     foo: "🍰食物柯打表格",
+    fss: "🪑PCC 固定資產系統",
     storeTitle: "選擇分店代號查詢資料",
     address: "Address：",
     addressZh: "中文地址：",
@@ -130,6 +131,7 @@ const LANG = {
     gaia: "🕗 Gaia UI",
     form: "📄 Store Forms",
     foo: "🍰Food order Form",
+    fss: "🪑PCC Fixed Asset Inventory System",
     storeTitle: "Select Store Code",
     address: "Address:",
     addressZh: "Chinese Address:",
@@ -159,15 +161,14 @@ function setLang(lang) {
   document.getElementById("gaia").textContent = LANG[lang].gaia;
   document.getElementById("form").textContent = LANG[lang].form;
   document.getElementById("foo").textContent = LANG[lang].foo;
+  document.getElementById("fss").textContent = LANG[lang].fss;
   document.getElementById("storeTitle").textContent = LANG[lang].storeTitle;
 
   loadWeather();
 }
 </script>
 <a id="rev26" href=https://drive.google.com/drive/folders/1cVuq8SG0kp_vbzQk8XWWHfHhsrbnEKbh class="link-button">📊2026 Revenue Data</a>
-
 <a id="rev25" href=https://drive.google.com/drive/folders/1GcMQC4TJCMT6YgVkldTBxpCnlEBNf3wo class="link-button">📊2025 Revenue Data</a>
-
 <a id="mh" href=https://1drv.ms/x/s!AurgEr5nfQcDhxCxxdLf8zA-DkFn?e=hQQskU" class="link-button">🕗每日時鐘</a>
 <a id="kee" href="https://hcc21.github.io/Cherry-area/Revence View.html" class="link-button">📊Revence View</a>
 <a id="form" href="https://drive.google.com/drive/folders/1yI6vbNPonKQSwrwM38v6Q1mRR5JkUyxJ?usp=drive_link" class="link-button">📄分店使用表格</a>
@@ -177,6 +178,7 @@ function setLang(lang) {
 <a id="erp" href="https://hkprodapp.pacificcoffee.com/dist/#/" class="link-button">📦ERP系統</a>
 <a id="inv" href="https://pcc-inventory.web.app/auth" class="link-button">📦PCC Inventory系統(只用作Clockin/out)</a>
 <a id="gaia" href="https://portal.gaiaworkforce.com/#/setting" class="link-button">🕗 Gaia UI</a>
+<a id="fss" href="http://8.217.152.210:8088/bi/Viewerhttp://8.217.152.210:8088/bi/Viewer" class="link-button">🪑PCC 固定資產系統</a>
 <a id="foo" href="https://hcc21.github.io/Pacific-coffee-Revenue/foodorder.html" class="link-button">🍰食物柯打表格</a>
 
 
